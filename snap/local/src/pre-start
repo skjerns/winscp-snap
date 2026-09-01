@@ -8,6 +8,7 @@
 # argument is not an existing path, so that conversion leaves it alone.
 
 INI="$SNAP_USER_COMMON/winscp.ini"
-INI_WIN=$("$WINELOADER" winepath -w "$INI" 2>/dev/null || echo "Z:${INI//\//\\}")
+INI_WIN=$("$WINELOADER" winepath -w "$INI" 2>/dev/null | tr -d '\r')
+[ -n "$INI_WIN" ] || INI_WIN="Z:${INI//\//\\}"
 
 ACTION_ARGS=( "/ini=$INI_WIN" "${ACTION_ARGS[@]}" )
