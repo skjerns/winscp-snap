@@ -9,20 +9,27 @@
 ## Install
 
     sudo snap install winscp
-    sudo snap connect winscp:removable-media
-    sudo snap connect winscp:cups-control
-    sudo snap connect winscp:ssh-keys
+    sudo snap connect winscp:wine-base-devel  wine-platform:wine-base-devel
+    sudo snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
 
 ([Don't have snapd installed?](https://snapcraft.io/docs/core/install))
 
-`ssh-keys` is needed to reach `~/.ssh`: the `home` interface does not grant
-access to dot-directories. Connect it only if you keep your keys there.
+**All three lines are needed.** The two content interfaces provide WINE
+itself, and the snap does not start without them: it exits with a message
+asking you to connect them. They are not connected automatically because the
+`wine-platform` snaps have a different publisher; an
+[auto-connection request](docs/store-auto-connection-request.md) is pending.
 
-Until the [auto-connection request](#store-side-setup) is granted, the WINE
-content interfaces must also be connected by hand:
+Then connect whichever of these you want:
 
-    sudo snap connect winscp:wine-base-devel  wine-platform:wine-base-devel
-    sudo snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
+    sudo snap connect winscp:removable-media   # USB disks and other drives
+    sudo snap connect winscp:ssh-keys          # OpenSSH keys in ~/.ssh
+    sudo snap connect winscp:cups-control      # printing
+
+`removable-media` and `ssh-keys` are worth knowing about: without the first,
+the file browser only sees `$HOME`, and without the second `~/.ssh` is
+invisible, because the `home` interface does not grant access to
+dot-directories.
 
 ## How it works
 
