@@ -58,7 +58,7 @@ is published by the WinSCP project, at no charge, at:
 
 The packaging scripts used to build this snap are at:
 
-    https://github.com/skjerns/winscp
+    https://github.com/skjerns/winscp-snap
 EOF2
 
     find "usr" -type d -execdir chmod 755 {} +
