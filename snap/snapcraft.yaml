@@ -75,7 +75,7 @@ parts:
       craftctl default
       set -ex
       ./dl_winscp
-      craftctl set-version "$(cat winscp.version)"
+      craftctl set version="$(cat winscp.version)"
     stage:
       - bin
       - usr
