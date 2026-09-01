@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Seed the WinSCP configuration once, on first install only.
+#
+# The ini lives in $SNAP_USER_COMMON so it survives snap refreshes;
+# $SNAP_USER_DATA is per-revision and must not hold user state.
+#
+# Never overwrite an existing ini: it holds the user's saved sessions.
+
+INI="$SNAP_USER_COMMON/winscp.ini"
+
+if [ ! -f "$INI" ]; then
+  INI_WIN=$("$WINELOADER" winepath -w "$INI" 2>/dev/null || echo "Z:${INI//\//\\}")
+
+  # Interface\Updates\Period=0 turns off WinSCP's own updater, which cannot
+  # write to a read-only snap. Snapd refreshes the package instead.
+  "$WINELOADER" "$SNAP_USER_DATA/winscp/WinSCP.com" "/ini=$INI_WIN" \
+    /rawconfig "Interface\Updates\Period=0" "Interface\CollectUsage=0" \
+    /command exit &>/dev/null
+fi

@@ -1,0 +1,91 @@
+name: winscp
+title: WinSCP (WINE)
+summary: WinSCP is a free SFTP, FTP, WebDAV, S3 and SCP client.
+description: |
+ WinSCP is a popular free SFTP and FTP client for Windows, here packaged with WINE. It copies files between a local and a remote computer using multiple protocols: FTP, FTPS, SCP, SFTP, WebDAV or S3. WinSCP offers an integrated text editor, scripting and task automation, integration with PuTTY, and support for SSH password, keyboard-interactive, public key and Kerberos authentication. It has both a two-panel Commander interface and an Explorer interface.
+adopt-info: winscp
+
+grade: stable
+confinement: strict
+base: core24
+platforms:
+  amd64:
+compression: lzo
+assumes:
+  - snapd2.62
+
+plugs:
+  shmem:
+    interface: shared-memory
+    private: true
+  wine-runtime-c24:
+    interface: content
+    target: $SNAP/wine-runtime
+    default-provider: wine-platform-runtime-core24
+  wine-base-devel:
+    interface: content
+    target: $SNAP/wine-platform
+    default-provider: wine-platform
+
+environment:
+  WINEDLLOVERRIDES: "mscoree,mshtml=" # Prevent pop-ups about Wine Mono and Wine Gecko
+  RUN_EXE: "$SNAP_USER_DATA/winscp/WinSCP.exe"
+  SOMMELIER_KEEP_CWD: "1" # Don't change the working directory so relative paths still work
+
+apps:
+  winscp:
+    extensions: [gnome]
+    command: bin/sommelier run-exe
+    plugs:
+      - shmem
+      - home
+      - network
+      - cups-control
+      - removable-media
+      - ssh-keys
+    desktop: usr/share/applications/winscp.desktop
+  # The wine command can be used to run applications inside the wine
+  # environment that this snap uses.
+  #
+  # For example, users can configure the wine environment of this snap
+  # by running `winscp.wine winecfg`.
+  wine:
+    extensions: [gnome]
+    command: bin/sommelier
+    plugs:
+      - shmem
+      - home
+      - network
+      - cups-control
+      - removable-media
+      - ssh-keys
+  # The winetricks command can be used to run winetricks inside the wine
+  # environment that this snap uses.
+  winetricks:
+    extensions: [gnome]
+    command: bin/sommelier winetricks
+    plugs:
+      - network
+
+parts:
+  winscp:
+    plugin: nil
+    source: ./snap/local/src
+    override-build: |
+      craftctl default
+      set -ex
+      ./dl_winscp
+      craftctl set-version "$(cat winscp.version)"
+    stage:
+      - bin
+      - usr
+      - wine-platform
+      - wine-runtime
+      - sommelier
+    build-packages: [wget, unzip]
+  # The sommelier script helps you snap Windows applications using Wine. It
+  # initializes and configures Wine and installs the Windows application.
+  sommelier:
+    plugin: make
+    source: https://github.com/mmtrt/sommelier-core.git
+    source-branch: "core24"

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Point WinSCP at the ini in $SNAP_USER_COMMON rather than letting it pick the
+# one next to the exe, which lives in the per-revision $SNAP_USER_DATA.
+#
+# This hook is sourced by sommelier inside start_app, before it converts the
+# arguments to Windows paths, so ACTION_ARGS can be extended here. The added
+# argument is not an existing path, so that conversion leaves it alone.
+
+INI="$SNAP_USER_COMMON/winscp.ini"
+INI_WIN=$("$WINELOADER" winepath -w "$INI" 2>/dev/null || echo "Z:${INI//\//\\}")
+
+ACTION_ARGS=( "/ini=$INI_WIN" "${ACTION_ARGS[@]}" )

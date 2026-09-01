@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+#
+# Description:
+#   download and prepare winscp for snap
+#
+
+# Scrape the stable Portable version from the upstream downloads page.
+# The page also advertises release candidates (WinSCP-6.6.2.RC-Portable.zip)
+# and an experimental x64 build, both of which must be ignored.
+getver () {
+    wget -q -O - https://winscp.net/eng/downloads.php 2>/dev/null \
+      | grep -oE 'WinSCP-[0-9]+(\.[0-9]+)+-Portable\.zip' \
+      | grep -v '\.RC' \
+      | grep -oE '[0-9]+(\.[0-9]+)+' \
+      | sort -Vr | head -n1
+}
+
+dlwinscp () {
+    ver=$(getver)
+    if [ -z "$ver" ]; then
+     echo "ERROR! Could not determine the stable WinSCP version from winscp.net. Failing the build here."
+     exit 1
+    fi
+    echo "$ver" > winscp.version
+
+    wget -q "https://downloads.sourceforge.net/project/winscp/WinSCP/${ver}/WinSCP-${ver}-Portable.zip" -O winscp.zip
+    if [ ! -s winscp.zip ]; then
+     echo "ERROR! Download of WinSCP-${ver}-Portable.zip failed. Failing the build here."
+     exit 1
+    fi
+
+    mkdir -p usr/share/winscp
+    unzip -q -o winscp.zip -d usr/share/winscp
+    rm winscp.zip
+
+    if [ ! -f usr/share/winscp/WinSCP.exe ]; then
+     echo "ERROR! WinSCP.exe not found in the portable zip. Failing the build here."
+     exit 1
+    fi
+}
+
+mkwinscp () {
+    appdir="usr/share/winscp"
+    mkdir ./{wine-runtime,wine-platform,bin} && mkdir -p sommelier/hooks && mkdir -p usr/share/{pixmaps,applications,doc/winscp}
+
+    # WinSCP is GPL-3.0; keep its licence with the binary.
+    mv $appdir/license.txt usr/share/doc/winscp/ &>/dev/null
+
+    # GPLv3 section 6(d): clear directions to the Corresponding Source.
+    cat > usr/share/doc/winscp/SOURCE-OFFER.txt <<EOF2
+WinSCP is free software licensed under the GNU General Public License
+version 3. See license.txt in this directory for the full licence text.
+
+The Corresponding Source for the WinSCP ${ver} binaries shipped in this snap
+is published by the WinSCP project, at no charge, at:
+
+    https://downloads.sourceforge.net/project/winscp/WinSCP/${ver}/WinSCP-${ver}-Source.zip
+
+The packaging scripts used to build this snap are at:
+
+    https://github.com/skjerns/winscp
+EOF2
+
+    find "usr" -type d -execdir chmod 755 {} +
+}
+
+# The icon was extracted once from the WinSCP.exe PE resources (RT_GROUP_ICON
+# 20156, the 256x256 entry). It is stable across releases; see README.md for
+# how to refresh it.
+mkicon () {
+    cp winscp.png usr/share/pixmaps/winscp.png
+}
+
+mkdsk () {
+cat > winscp.desktop <<'EOF1'
+[Desktop Entry]
+Name=WinSCP
+GenericName=SFTP/FTP Client
+Comment=Free SFTP, FTP, WebDAV, S3 and SCP client.
+Encoding=UTF-8
+Version=
+Type=Application
+Terminal=false
+Icon=${SNAP}/usr/share/pixmaps/winscp.png
+Exec=winscp %U
+StartupWMClass=winscp.exe
+Categories=Network;FileTransfer;
+MimeType=x-scheme-handler/sftp;x-scheme-handler/scp;x-scheme-handler/ftp;x-scheme-handler/ftps;
+EOF1
+sed -i -e 's|Version=|Version='"$ver"'|g' winscp.desktop
+}
+
+dlwinscp
+mkwinscp
+mkicon
+mkdsk
+
+mv pre-install sommelier/hooks && mv post-install sommelier/hooks && mv pre-start sommelier/hooks
+mv winscp.desktop usr/share/applications
+cp -R -p {sommelier,bin,usr,wine-platform,wine-runtime} $CRAFT_PART_INSTALL

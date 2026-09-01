@@ -1,0 +1,8 @@
+*.snap
+parts/
+prime/
+stage/
+snap/local/src/winscp.version
+
+# local research handoff, not part of the published packaging
+WINSCP-PACKAGING-NOTES.md

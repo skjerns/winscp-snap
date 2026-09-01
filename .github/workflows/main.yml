@@ -1,0 +1,35 @@
+name: stable
+
+on:
+  # A new upstream version lands as a commit to .build from release-check.yml,
+  # which is what triggers a build and a release to the stable channel.
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install snapcraft
+        run: sudo snap install --classic snapcraft
+
+      - name: Build snap
+        id: build
+        env:
+          SNAPCRAFT_BUILD_INFO: "1"
+          SNAPCRAFT_IMAGE_INFO: '{"build_url":"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
+        run: sudo snapcraft --destructive-mode
+
+      - name: Upload snap
+        if: github.event_name != 'pull_request'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+        run: snapcraft upload --release=stable *.snap

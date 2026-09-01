@@ -1,0 +1,30 @@
+name: check
+
+on:
+  schedule:
+  - cron: "0 */12 * * *"
+  workflow_dispatch:
+
+jobs:
+  new-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        token: ${{ secrets.PAT }}
+    - name: get-latest-version
+      run: |
+        VERSION="$(wget -q -O - https://winscp.net/eng/downloads.php 2>/dev/null | grep -oE 'WinSCP-[0-9]+(\.[0-9]+)+-Portable\.zip' | grep -v '\.RC' | grep -oE '[0-9]+(\.[0-9]+)+' | sort -Vr | head -n1)"
+        last=$(tail -n1 .build | awk '{print $4}')
+        if [ -n "$VERSION" ]; then
+         if [ "$last" != "$VERSION" ]; then
+           echo "$(date -u --rfc-3339=seconds) Version $VERSION" >> .build
+         fi
+        else
+         echo "No update released."
+        fi
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Trigger build for new version
+        branch: master
