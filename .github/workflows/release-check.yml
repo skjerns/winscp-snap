@@ -5,26 +5,42 @@ on:
   - cron: "0 */12 * * *"
   workflow_dispatch:
 
+# The auto-commit below is made with the default GITHUB_TOKEN, and a push made
+# with that token deliberately does not start another workflow. workflow_dispatch
+# is one of the two events exempt from that rule, so the build is started
+# explicitly instead, and no personal access token is needed.
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   new-release:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v6
-      with:
-        token: ${{ secrets.PAT }}
     - name: get-latest-version
+      id: check
       run: |
         VERSION="$(wget -q -O - https://winscp.net/eng/downloads.php 2>/dev/null | grep -oE 'WinSCP-[0-9]+(\.[0-9]+)+-Portable\.zip' | grep -v '\.RC' | grep -oE '[0-9]+(\.[0-9]+)+' | sort -Vr | head -n1)"
         last=$(tail -n1 .build | awk '{print $4}')
         if [ -n "$VERSION" ]; then
          if [ "$last" != "$VERSION" ]; then
            echo "$(date -u --rfc-3339=seconds) Version $VERSION" >> .build
+           echo "bumped=$VERSION" >> "$GITHUB_OUTPUT"
+           echo "New version $VERSION, was $last."
+         else
+           echo "Still on $VERSION, nothing to do."
          fi
         else
-         echo "No update released."
+         echo "::warning::Could not scrape a version from winscp.net."
         fi
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: Trigger build for new version
         branch: master
+    - name: start-build
+      if: steps.check.outputs.bumped != ''
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh workflow run main.yml --ref master
