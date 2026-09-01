@@ -71,21 +71,28 @@ To force a rebuild without waiting, run either workflow from the Actions tab.
    Since March 2024 every new name registration gets a manual review; expect a
    turnaround of about two working days.
 
-2. Export store credentials and put them in the repository secret
-   `STORE_LOGIN`:
+2. Export store credentials into the repository secret `STORE_LOGIN`:
 
-       snapcraft export-login --acls package_access,package_push,package_update,package_release -
+       tools/set-store-credentials
 
-3. Create a GitHub personal access token with `repo` scope and put it in the
-   repository secret `PAT`. `release-check.yml` needs it so that its
-   auto-commit can trigger `main.yml`; a commit made with the default
-   `GITHUB_TOKEN` does not fire other workflows.
+   `SNAPCRAFT_STORE_CREDENTIALS` has to be the base64 blob that
+   `snapcraft export-login <file>` writes. Exporting to stdout instead prepends
+   an `Exported login credentials:` line, and piping that into `gh secret set`
+   stores something that only fails much later, in CI, with `Credentials could
+   not be parsed`. The script exports to a file, checks the result decodes, and
+   sets the secret only then.
 
-4. File an auto-connection request in the snapcraft forum `store-requests`
+   No personal access token is needed. A push made with the default
+   `GITHUB_TOKEN` deliberately does not start another workflow, which is why
+   the reference snaps use a PAT, but `workflow_dispatch` is exempt from that
+   rule, so `release-check.yml` starts the build itself.
+
+3. File an auto-connection request in the snapcraft forum `store-requests`
    category for the `wine-base-devel` and `wine-runtime-c24` content interfaces
    and for `removable-media`. Content interfaces auto-connect only between
    snaps of the same publisher, and `wine-platform` belongs to a third party,
-   so without this every user has to run the `snap connect` lines above.
+   so without this every user has to run the `snap connect` lines above. A
+   draft is in [docs/store-auto-connection-request.md](docs/store-auto-connection-request.md).
 
 ### Building and testing
 
