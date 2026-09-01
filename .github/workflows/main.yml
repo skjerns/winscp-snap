@@ -32,7 +32,7 @@ jobs:
         run: sudo snapcraft --destructive-mode
 
       - name: Store the built snap
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: winscp-snap
           path: ./*.snap

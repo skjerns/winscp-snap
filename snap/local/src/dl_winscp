@@ -71,14 +71,15 @@ mkicon () {
     cp winscp.png usr/share/pixmaps/winscp.png
 }
 
+# Note: the desktop spec's Version key means the spec version, not the
+# application version, so it is left out. The WinSCP version is carried by
+# the snap itself.
 mkdsk () {
 cat > winscp.desktop <<'EOF1'
 [Desktop Entry]
 Name=WinSCP
 GenericName=SFTP/FTP Client
 Comment=Free SFTP, FTP, WebDAV, S3 and SCP client.
-Encoding=UTF-8
-Version=
 Type=Application
 Terminal=false
 Icon=${SNAP}/usr/share/pixmaps/winscp.png
@@ -87,7 +88,6 @@ StartupWMClass=winscp.exe
 Categories=Network;FileTransfer;
 MimeType=x-scheme-handler/sftp;x-scheme-handler/scp;x-scheme-handler/ftp;x-scheme-handler/ftps;
 EOF1
-sed -i -e 's|Version=|Version='"$ver"'|g' winscp.desktop
 }
 
 dlwinscp
