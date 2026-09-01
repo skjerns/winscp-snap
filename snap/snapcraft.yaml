@@ -4,6 +4,11 @@ summary: WinSCP is a free SFTP, FTP, WebDAV, S3 and SCP client.
 description: |
  WinSCP is a popular free SFTP and FTP client for Windows, here packaged with WINE. It copies files between a local and a remote computer using multiple protocols: FTP, FTPS, SCP, SFTP, WebDAV or S3. WinSCP offers an integrated text editor, scripting and task automation, integration with PuTTY, and support for SSH password, keyboard-interactive, public key and Kerberos authentication. It has both a two-panel Commander interface and an Explorer interface.
 adopt-info: winscp
+license: GPL-3.0-or-later
+website: https://winscp.net
+source-code: https://github.com/skjerns/winscp-snap
+issues: https://github.com/skjerns/winscp-snap/issues
+contact: https://github.com/skjerns/winscp-snap/issues
 
 grade: stable
 confinement: strict
