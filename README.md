@@ -87,15 +87,25 @@ To force a rebuild without waiting, run either workflow from the Actions tab.
    snaps of the same publisher, and `wine-platform` belongs to a third party,
    so without this every user has to run the `snap connect` lines above.
 
-### Building locally
+### Building and testing
 
-    sudo snap install --classic snapcraft
-    sudo snapcraft --destructive-mode
-    sudo snap install --dangerous ./winscp_*.snap
+`--destructive-mode` builds against the host and needs the host release to
+match the base, so it only works on Ubuntu 24.04. That is what the CI runner
+does. Anywhere else, build in LXD:
 
-`--destructive-mode` builds against the host, which is what CI does. It
-apt-installs the `build-packages` (`wget`, `unzip`) onto your machine. Drop the
-flag to build in LXD instead.
+    sudo snap install --classic snapcraft lxd
+    sudo lxd init --auto
+    snapcraft
+
+Every push also attaches the built snap to its workflow run, so you can take
+one from CI instead:
+
+    gh run download --name winscp-snap
+
+Then run the checks, which cover launching, ini seeding and the
+upstream-version-change path:
+
+    sudo tools/runtime-test ./winscp_*.snap
 
 ### Refreshing the icon
 

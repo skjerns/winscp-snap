@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+#
+# Install a locally built winscp snap and check the things that the snap
+# packaging is responsible for: that it launches, that the ini is seeded with
+# the update check off, and that user state survives a version change.
+#
+# Usage: sudo tools/runtime-test path/to/winscp_*.snap
+#
+set -u
+
+SNAPFILE="${1:-}"
+if [ -z "$SNAPFILE" ] || [ ! -f "$SNAPFILE" ]; then
+  echo "Usage: sudo $0 path/to/winscp_*.snap" >&2
+  exit 2
+fi
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This needs root to install the snap. Re-run with sudo." >&2
+  exit 2
+fi
+
+REALUSER="${SUDO_USER:-$USER}"
+COMMON="$(getent passwd "$REALUSER" | cut -d: -f6)/snap/winscp/common"
+
+pass () { echo "PASS  $*"; }
+fail () { echo "FAIL  $*"; FAILED=1; }
+FAILED=0
+
+echo "== installing =="
+snap install --dangerous "$SNAPFILE" || exit 1
+
+echo "== connecting interfaces =="
+snap connect winscp:wine-base-devel  wine-platform:wine-base-devel
+snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
+snap connect winscp:removable-media
+snap connect winscp:ssh-keys
+snap connections winscp
+
+echo
+echo "== first launch (creates the prefix, seeds the ini) =="
+# The first run builds the wineprefix, which takes a while.
+sudo -u "$REALUSER" timeout 180 snap run winscp &
+APPPID=$!
+sleep 90
+
+echo
+echo "== checks =="
+
+if [ -f "$COMMON/winscp.ini" ]; then
+  pass "ini created at $COMMON/winscp.ini"
+  if grep -A5 'Updates' "$COMMON/winscp.ini" | grep -q 'Period=0'; then
+    pass "update check is off (Period=0)"
+  else
+    fail "Period=0 not found in the ini"
+    grep -B2 -A5 'Updates' "$COMMON/winscp.ini"
+  fi
+else
+  fail "no ini at $COMMON/winscp.ini"
+fi
+
+[ -d "$COMMON/.wine" ] && pass "wineprefix at $COMMON/.wine" || fail "no wineprefix"
+
+if command -v wmctrl >/dev/null && wmctrl -l | grep -qi winscp; then
+  pass "a WinSCP window is mapped"
+else
+  echo "NOTE  could not confirm a window with wmctrl; check the screen yourself"
+fi
+
+kill $APPPID 2>/dev/null
+sudo -u "$REALUSER" pkill -f WinSCP.exe 2>/dev/null
+sleep 3
+
+echo
+echo "== simulating an upstream version bump =="
+# Drop a marker and pretend the snap was refreshed to a new version. Sommelier
+# must reinstall the app into SNAP_USER_DATA and leave SNAP_USER_COMMON alone.
+sudo -u "$REALUSER" touch "$COMMON/state-marker"
+sudo -u "$REALUSER" cp "$COMMON/winscp.ini" "$COMMON/winscp.ini.before"
+echo "0.0.0" | sudo -u "$REALUSER" tee "$COMMON/.last_snap_version" >/dev/null
+
+sudo -u "$REALUSER" timeout 120 snap run winscp &
+APPPID=$!
+sleep 60
+
+[ -f "$COMMON/state-marker" ] && pass "marker survived the version change" || fail "marker lost"
+if sudo -u "$REALUSER" cmp -s "$COMMON/winscp.ini" "$COMMON/winscp.ini.before"; then
+  pass "ini unchanged by the version change"
+else
+  fail "ini was modified"
+  diff "$COMMON/winscp.ini.before" "$COMMON/winscp.ini" | head
+fi
+[ -d "$COMMON/.wine" ] && pass "wineprefix survived" || fail "wineprefix lost"
+if [ "$(cat "$COMMON/.last_snap_version")" = "$(snap list winscp | awk 'NR==2{print $2}')" ]; then
+  pass "sommelier reinstalled the app and rewrote .last_snap_version"
+else
+  fail ".last_snap_version was not updated, so install_app did not run"
+fi
+
+kill $APPPID 2>/dev/null
+sudo -u "$REALUSER" pkill -f WinSCP.exe 2>/dev/null
+sudo -u "$REALUSER" rm -f "$COMMON/state-marker" "$COMMON/winscp.ini.before"
+
+echo
+echo "== other entry points =="
+sudo -u "$REALUSER" timeout 60 snap run winscp.wine --version && pass "winscp.wine runs" || fail "winscp.wine failed"
+
+echo
+[ "$FAILED" -eq 0 ] && echo "ALL CHECKS PASSED" || echo "SOME CHECKS FAILED"
+exit "$FAILED"
