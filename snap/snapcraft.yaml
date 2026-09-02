@@ -14,6 +14,7 @@ description: |
  other drives, and `snap connect winscp:ssh-keys` to reach OpenSSH keys in
  ~/.ssh.
 adopt-info: winscp
+icon: snap/local/src/winscp.png
 license: GPL-3.0-or-later
 website: https://winscp.net
 source-code: https://github.com/skjerns/winscp-snap
