@@ -7,7 +7,7 @@ description: |
  After installing, connect the two WINE content interfaces, or the application
  will not start:
 
-   sudo snap connect winscp:wine-base-devel  wine-platform:wine-base-devel
+   sudo snap connect winscp:wine-base-stable wine-platform:wine-base-stable
    sudo snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
 
  You may also want `snap connect winscp:removable-media` to reach USB disks and
@@ -38,7 +38,7 @@ plugs:
     interface: content
     target: $SNAP/wine-runtime
     default-provider: wine-platform-runtime-core24
-  wine-base-devel:
+  wine-base-stable:
     interface: content
     target: $SNAP/wine-platform
     default-provider: wine-platform

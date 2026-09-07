@@ -1,3 +1,22 @@
+<!-- Filed 2026-09-02, reviewed 2026-09-05. -->
+Thread: https://forum.snapcraft.io/t/auto-connection-request-for-the-winscp-snap-wine-platform-content-interfaces-and-removable-media/53048
+
+## Outcome
+
+* `wine-runtime-c24` — **+1**, on the precedent that earlier
+  `wine-platform-runtime-coreXX` snaps already have global auto-connect.
+* `wine-base-*` — **+1 for `wine-base-stable`**, with the reviewer encouraging a
+  stable snap to use the stable WINE rather than the development one. The snap
+  moved from `wine-base-devel` (11.11) to `wine-base-stable` (11.0) in response;
+  WinSCP 6.5.6 was checked on 11.0 first and runs there.
+* `removable-media` — **-1, declined.** Auto-connecting it requires publisher
+  vetting, which requires an official relationship with the upstream project.
+  It stays a documented manual connection.
+
+The request as filed follows.
+
+---
+
 Title: Auto-connection request for the winscp snap (wine-platform content
 interfaces and removable-media)
 
@@ -19,7 +38,7 @@ I would like to request auto-connection for the following:
 
 **Content interfaces**
 
-* plug `wine-base-devel` to slot `wine-platform:wine-base-devel`
+* plug `wine-base-stable` to slot `wine-platform:wine-base-stable`
 * plug `wine-runtime-c24` to slot `wine-platform-runtime-core24:wine-runtime-c24`
 
 These provide the WINE build and its runtime. They are published by another

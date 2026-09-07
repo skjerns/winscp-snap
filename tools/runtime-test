@@ -30,7 +30,7 @@ echo "== installing =="
 snap install --dangerous "$SNAPFILE" || exit 1
 
 echo "== connecting interfaces =="
-snap connect winscp:wine-base-devel  wine-platform:wine-base-devel
+snap connect winscp:wine-base-stable wine-platform:wine-base-stable
 snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
 snap connect winscp:removable-media
 snap connect winscp:ssh-keys

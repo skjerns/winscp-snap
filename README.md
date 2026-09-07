@@ -9,7 +9,7 @@
 ## Install
 
     sudo snap install winscp
-    sudo snap connect winscp:wine-base-devel  wine-platform:wine-base-devel
+    sudo snap connect winscp:wine-base-stable wine-platform:wine-base-stable
     sudo snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
 
 ([Don't have snapd installed?](https://snapcraft.io/docs/core/install))
@@ -17,8 +17,10 @@
 **All three lines are needed.** The two content interfaces provide WINE
 itself, and the snap does not start without them: it exits with a message
 asking you to connect them. They are not connected automatically because the
-`wine-platform` snaps have a different publisher; an
-[auto-connection request](docs/store-auto-connection-request.md) is pending.
+`wine-platform` snaps have a different publisher. An
+[auto-connection request](docs/store-auto-connection-request.md) for both has
+been reviewed favourably and is being applied; once it lands, `snap install`
+alone will be enough.
 
 Then connect whichever of these you want:
 
@@ -29,7 +31,9 @@ Then connect whichever of these you want:
 `removable-media` and `ssh-keys` are worth knowing about: without the first,
 the file browser only sees `$HOME`, and without the second `~/.ssh` is
 invisible, because the `home` interface does not grant access to
-dot-directories.
+dot-directories. Both stay manual by design. Auto-connecting `removable-media`
+needs publisher vetting, which requires an official relationship with upstream,
+and this snap is not published by the WinSCP project.
 
 ## How it works
 
@@ -94,12 +98,13 @@ To force a rebuild without waiting, run either workflow from the Actions tab.
    the reference snaps use a PAT, but `workflow_dispatch` is exempt from that
    rule, so `release-check.yml` starts the build itself.
 
-3. File an auto-connection request in the snapcraft forum `store-requests`
-   category for the `wine-base-devel` and `wine-runtime-c24` content interfaces
-   and for `removable-media`. Content interfaces auto-connect only between
-   snaps of the same publisher, and `wine-platform` belongs to a third party,
-   so without this every user has to run the `snap connect` lines above. A
-   draft is in [docs/store-auto-connection-request.md](docs/store-auto-connection-request.md).
+3. Auto-connection is requested in the snapcraft forum `store-requests`
+   category, because content interfaces auto-connect only between snaps of the
+   same publisher and `wine-platform` belongs to a third party. The request and
+   its outcome are in
+   [docs/store-auto-connection-request.md](docs/store-auto-connection-request.md):
+   both content interfaces approved, `removable-media` declined because
+   auto-connecting it needs publisher vetting.
 
 ### Building and testing
 
