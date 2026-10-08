@@ -1,4 +1,4 @@
-<!-- Filed 2026-09-02, reviewed 2026-09-05. -->
+<!-- Filed 2026-09-02, reviewed 2026-09-05, granted and live 2026-09-11. -->
 Thread: https://forum.snapcraft.io/t/auto-connection-request-for-the-winscp-snap-wine-platform-content-interfaces-and-removable-media/53048
 
 ## Outcome
@@ -12,6 +12,9 @@ Thread: https://forum.snapcraft.io/t/auto-connection-request-for-the-winscp-snap
 * `removable-media` — **-1, declined.** Auto-connecting it requires publisher
   vetting, which requires an official relationship with the upstream project.
   It stays a documented manual connection.
+* Granted 2026-09-11 (+2/-0): `wine-base-stable` and `wine-runtime-c24`
+  auto-connect. The reviewer also asked that the description or summary say
+  the snap is unofficial and not associated with upstream; both now do.
 
 The request as filed follows.
 

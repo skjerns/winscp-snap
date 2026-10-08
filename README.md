@@ -4,23 +4,20 @@
   winscp
 </h1>
 
-<p align="center"><b>This is the snap for WinSCP</b>, <i>"a free SFTP, FTP, WebDAV, S3 and SCP client"</i>, packaged with WINE. It works on Ubuntu, Fedora, Debian, and other major Linux distributions.</p>
+<p align="center"><b>This is an unofficial snap for WinSCP</b>, <i>"a free SFTP, FTP, WebDAV, S3 and SCP client"</i>, packaged with WINE. It works on Ubuntu, Fedora, Debian, and other major Linux distributions.</p>
 
 ## Install
 
     sudo snap install winscp
-    sudo snap connect winscp:wine-base-stable wine-platform:wine-base-stable
-    sudo snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
 
 ([Don't have snapd installed?](https://snapcraft.io/docs/core/install))
 
-**All three lines are needed.** The two content interfaces provide WINE
-itself, and the snap does not start without them: it exits with a message
-asking you to connect them. They are not connected automatically because the
-`wine-platform` snaps have a different publisher. An
-[auto-connection request](docs/store-auto-connection-request.md) for both has
-been reviewed favourably and is being applied; once it lands, `snap install`
-alone will be enough.
+The two WINE content interfaces (`wine-base-stable`, `wine-runtime-c24`)
+auto-connect from the store. Only a locally built snap installed with
+`--dangerous` needs them connected by hand:
+
+    sudo snap connect winscp:wine-base-stable wine-platform:wine-base-stable
+    sudo snap connect winscp:wine-runtime-c24 wine-platform-runtime-core24:wine-runtime-c24
 
 Then connect whichever of these you want:
 
@@ -103,8 +100,9 @@ To force a rebuild without waiting, run either workflow from the Actions tab.
    same publisher and `wine-platform` belongs to a third party. The request and
    its outcome are in
    [docs/store-auto-connection-request.md](docs/store-auto-connection-request.md):
-   both content interfaces approved, `removable-media` declined because
-   auto-connecting it needs publisher vetting.
+   both content interfaces approved and live since 2026-09-11,
+   `removable-media` declined because auto-connecting it needs publisher
+   vetting.
 
 ### Building and testing
 
