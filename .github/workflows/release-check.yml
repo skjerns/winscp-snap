@@ -33,7 +33,10 @@ jobs:
            echo "Still on $VERSION, nothing to do."
          fi
         else
-         echo "::warning::Could not scrape a version from winscp.net."
+         # Fail the run rather than warn, so GitHub emails a failure notice.
+         # A layout change on winscp.net would otherwise stop updates silently.
+         echo "::error::Could not scrape a version from winscp.net. The downloads page may have changed."
+         exit 1
         fi
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:

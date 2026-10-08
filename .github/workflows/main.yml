@@ -5,6 +5,8 @@ on:
   # which is what triggers a build and a release to the stable channel.
   push:
     branches: [ master ]
+    # The monthly keep-alive commit only exists to keep the schedules enabled.
+    paths-ignore: [ .keepalive ]
   pull_request:
     branches: [ master ]
 

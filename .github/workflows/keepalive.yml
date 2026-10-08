@@ -1,0 +1,25 @@
+name: keepalive
+
+# GitHub disables scheduled workflows in a public repository after 60 days
+# without activity. release-check.yml only commits when WinSCP releases, so a
+# quiet upstream would switch the update check off. A monthly commit to
+# .keepalive prevents that; main.yml ignores it, so it does not build.
+on:
+  schedule:
+  - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+    - run: date -u --rfc-3339=seconds > .keepalive
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Keep the scheduled workflows enabled
+        branch: master
