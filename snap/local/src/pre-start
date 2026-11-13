@@ -12,3 +12,17 @@ INI_WIN=$("$WINELOADER" winepath -w "$INI" 2>/dev/null | tr -d '\r')
 [ -n "$INI_WIN" ] || INI_WIN="Z:${INI//\//\\}"
 
 ACTION_ARGS=( "/ini=$INI_WIN" "${ACTION_ARGS[@]}" )
+
+# WinSCP 6.7 fails on Wine's stubbed IAccPropServices::SetHwndProp: the close
+# button stops working and a failed connection crashes the application. Point
+# the class at the stand-in in $SNAP instead (see accprop/accprop.c). Only the
+# 32-bit view is touched, as WinSCP is 32-bit. A Wine update re-registers
+# oleacc, so check every start; the grep keeps the common case free of a
+# Wine process.
+ACCPROP_KEY='Software\\Classes\\Wow6432Node\\CLSID\\{B5F8350B-0548-48B1-A6EE-88BD00B4A5E7}\\InprocServer32]'
+ACCPROP_DLL='Z:\snap\winscp\current\usr\lib\winscp\accprop.dll'
+if ! grep -A3 -F "$ACCPROP_KEY" "$WINEPREFIX/system.reg" 2>/dev/null \
+     | grep -qF "${ACCPROP_DLL//\\/\\\\}"; then
+  "$WINELOADER" reg add 'HKLM\Software\Classes\CLSID\{B5F8350B-0548-48B1-A6EE-88BD00B4A5E7}\InprocServer32' \
+    /ve /d "$ACCPROP_DLL" /reg:32 /f >/dev/null 2>&1
+fi

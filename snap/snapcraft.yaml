@@ -96,7 +96,7 @@ parts:
       - wine-platform
       - wine-runtime
       - sommelier
-    build-packages: [wget, unzip]
+    build-packages: [wget, unzip, gcc-mingw-w64-i686-win32]
   # The sommelier script helps you snap Windows applications using Wine. It
   # initializes and configures Wine and installs the Windows application.
   sommelier:

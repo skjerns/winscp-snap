@@ -50,6 +50,13 @@ touched by updates:
 `~/snap/winscp/current/winscp/` is a symlink farm onto the read-only payload in
 `$SNAP`; sommelier rebuilds it whenever the snap version or revision changes.
 
+WinSCP 6.7 labels its dialogs for screen readers through
+`IAccPropServices::SetHwndProp`, which Wine only stubs, and WinSCP treats the
+failure as an error. The close button then does nothing while a session is
+open, and a failed connection takes the whole application down. The snap
+builds a small stand-in for that COM class (`snap/local/src/accprop/`), whose
+methods all succeed, and the pre-start hook registers it in the wineprefix.
+
 WinSCP's own updater is switched off on first run
 (`Interface\Updates\Period=0`) because it cannot write into a read-only snap.
 Updates arrive through snapd instead, which refreshes about four times a day.

@@ -71,6 +71,18 @@ mkicon () {
     cp winscp.png usr/share/pixmaps/winscp.png
 }
 
+# A stand-in for Wine's stubbed AccPropServices COM class; see accprop/accprop.c
+# for why WinSCP needs it. The pre-start hook registers it.
+mkshim () {
+    mkdir -p usr/lib/winscp
+    i686-w64-mingw32-gcc-win32 -shared -O2 -s -Wall \
+      -o usr/lib/winscp/accprop.dll accprop/accprop.c accprop/accprop.def -luuid
+    if [ ! -s usr/lib/winscp/accprop.dll ]; then
+     echo "ERROR! Building accprop.dll failed. Failing the build here."
+     exit 1
+    fi
+}
+
 # Note: the desktop spec's Version key means the spec version, not the
 # application version, so it is left out. The WinSCP version is carried by
 # the snap itself.
@@ -93,6 +105,7 @@ EOF1
 dlwinscp
 mkwinscp
 mkicon
+mkshim
 mkdsk
 
 mv pre-install sommelier/hooks && mv post-install sommelier/hooks && mv pre-start sommelier/hooks
